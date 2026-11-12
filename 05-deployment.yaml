@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-enterprise-deployment
+  namespace: production-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: enterprise-fastapi
+  template:
+    metadata:
+      labels:
+        app: enterprise-fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: upparagovindu/fastapi-selfheal:v2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - mountPath: /app/data
+          name: storage-volume
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secret
+      volumes:
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: app-data-pvc

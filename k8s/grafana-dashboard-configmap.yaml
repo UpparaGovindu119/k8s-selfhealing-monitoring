@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fastapi-enterprise-grafana-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"  # Idi chala important! Grafana sidecar ee label vadi automatic ga pick chesthundi.
+data:
+  fastapi-dashboard.json: |
+    {
+      "annotations": {
+        "list": []
+      },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          },
+          "id": 1,
+          "title": "FastAPI Request Rate (Req/sec)",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "monitoring-stack-kube-prom-prometheus"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "monitoring-stack-kube-prom-prometheus"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(http_requests_total[5m])) by (handler)",
+              "legendFormat": "{{handler}}",
+              "range": true,
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 0
+          },
+          "id": 2,
+          "title": "FastAPI Pod CPU Usage",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "monitoring-stack-kube-prom-prometheus"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "monitoring-stack-kube-prom-prometheus"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"production-app\", container=\"fastapi\"}[5m])) by (pod)",
+              "legendFormat": "{{pod}}",
+              "range": true,
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["fastapi", "enterprise", "automated"],
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "title": "FastAPI Enterprise Monitoring (Automated)",
+      "uid": "fastapi-enterprise-automated",
+      "version": 1
+    }

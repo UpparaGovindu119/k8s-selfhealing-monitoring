@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-enterprise-deployment
+  namespace: production-app
+  labels:
+    app: enterprise-fastapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: enterprise-fastapi
+  template:
+    metadata:
+      labels:
+        app: enterprise-fastapi
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: fastapi
+        image: upparagovindu/fastapi-selfheal:v2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+        envFrom:
+        - configMapRef:
+            name: fastapi-config
+        - secretRef:
+            name: fastapi-secret
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: app-data
+          mountPath: /app/data
+      volumes:
+      - name: app-data
+        persistentVolumeClaim:
+          claimName: app-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-enterprise-service
+  namespace: production-app
+spec:
+  selector:
+    app: enterprise-fastapi
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
