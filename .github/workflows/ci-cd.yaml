@@ -38,7 +38,12 @@ jobs:
       run: |
         aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.CLUSTER_NAME }}
 
-    - name: Deploy to Kubernetes Cluster
+    - name: Deploy to Kubernetes Cluster with Development Environment
+      env:
+        ENVIRONMENT: development
       run: |
+        echo "Deploying application in $ENVIRONMENT mode..."
+        kubectl set env deployment/fastapi-enterprise-deployment ENVIRONMENT=development -n production-app
         kubectl set image deployment/fastapi-enterprise-deployment fastapi=${{ secrets.DOCKER_USERNAME }}/fastapi-selfheal:latest -n production-app
         kubectl rollout status deployment/fastapi-enterprise-deployment -n production-app
+EOF
